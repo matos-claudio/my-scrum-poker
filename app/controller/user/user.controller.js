@@ -22,7 +22,7 @@ exports.updateUser = async (req, res) => {
 
     try {
         var userId = req.params._id
-        let userUpdated = User.findOneAndUpdate({ _id: userId }, req.body)
+        let userUpdated = await User.findOneAndUpdate({ _id: userId }, req.body)
         res.status(200).send({ data: userUpdated, message: 'Usuário atualizado.' })
     } catch (error) {
         res.status(500).send({ data: error, message: 'Erro ao criar ao usuário. Entre em contato com o desenvolvedor.' })

@@ -28,11 +28,11 @@ var roomSchema = new Schema(
                     type: String
                 },
                 name: {
-                    type: String  
+                    type: String
                 },
                 office: {
                     type: String,
-                    enum: ['PO', 'SM', 'TD'],
+                    enum: ['PO', 'SM', 'TD', 'GU'], //Product Owner, Scrum Master, Team Development, Guest
                     required: true
                 },
                 avatar: {
@@ -45,20 +45,36 @@ var roomSchema = new Schema(
             }
         ],
         stories: [
-            historyNumber = {
-                type: Number
-            },
-            points = {
-                type: Number        
-            },
-            description = {
-                type: String
-            },
-            member = {
-                type: String
-            },
-            createdBy = {
-                type: String
+            {
+                historyNumber: {
+                    type: String
+                },
+                description: {
+                    type: String
+                },
+                createdBy: {
+                    type: String
+                },
+                isCompleted: {
+                    type: Boolean,
+                    default: false
+                },
+                points: {
+                    historyPoints: {
+                        type: Number
+                    },
+                    votes: [
+                        {
+                            member: {
+                                type: String
+                            },
+                            score: {
+                                type: Number
+                            }
+                        }
+                        
+                    ]
+                }
             }
         ]
 
