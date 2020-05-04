@@ -43,6 +43,23 @@ var roomSchema = new Schema(
                     default: true
                 }
             }
+        ],
+        stories: [
+            historyNumber = {
+                type: Number
+            },
+            points = {
+                type: Number        
+            },
+            description = {
+                type: String
+            },
+            member = {
+                type: String
+            },
+            createdBy = {
+                type: String
+            }
         ]
 
     }, { versionKey: false, timestamps: true }

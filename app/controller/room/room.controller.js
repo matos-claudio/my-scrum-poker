@@ -9,7 +9,7 @@ exports.createRoom = async (req, res) => {
     try {
         var room = new Room(req.body);
         let createdRoom = await room.save();
-        res.status(200).send({ data: createdRoom, message: 'Sala criada.' })
+        res.status(201).send({ data: createdRoom, message: 'Sala criada.' })
     } catch (error) {
         res.status(500).send({ data: error, message: 'Erro ao criar a sala. Entre em contato com o desenvolvedor.' })
     }
