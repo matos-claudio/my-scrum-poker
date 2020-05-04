@@ -1,25 +1,20 @@
 const app = require('../index')
 const debug = require('debug')('nodestr:server');
-const http = require('http');
+// const http = require('http');
 
 const port = normalizePort(process.env.PORT || 3000);
 app.set('port', port);
 
-const server = http.createServer(app);
+const server = require('./createServer')
 server.listen(port);
+
 server.on('error', onError);
 server.on('listenig', onListening);
 
 console.log(`Servidor rodando na porta.: ${port}`)
 
-
-var mongoose = require('mongoose')
-mongoose.connect('mongodb+srv://corona-api:coronaVirus@cluster0-zjpdm.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true })
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'))
-db.once('open', function() {
-    console.log(`Conexao com o banco, OK!!!`)
-}) 
+const connection = require('./connection')
+console.log(connection.readyState)
 
 
 function normalizePort(val) {
