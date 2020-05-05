@@ -1,6 +1,47 @@
 const Room = require('../../model/room/room.model');
 const { isEmptyObject } = require('../../helper/helper');
 
+const socketIo = require("socket.io");
+const io = socketIo.listen()
+
+
+// io.on("connection", (socket) => {
+//     console.log("New client connected");
+//     if (interval) {
+//         clearInterval(intervalna);
+//     }
+//     //interval = setInterval(() => teste(socket), 5000);
+//     socket.on("disconnect", () => {
+//         console.log("Client disconnected");
+//         clearInterval(interval);
+//     });
+// });
+
+// const getApiAndEmit = socket => {
+//     const response = new Date();
+//     // Emitting a new message. Will be consumed by the client
+//     console.log(response)
+//     //socket.emit("FromAPI", response);
+//     io.emit('FromAPI', response) // broadcast para todos os clientes
+// };
+
+// const teste = async (socket) => {
+//     let response = await Room.findOne({ _id: '5eb033925f13767c7e254841' })
+//     console.log(response)
+//     //io.emit('FromAPI', response.roomName)
+//     io.emit('FromAPI', { to: response.roomName })
+// }
+
+exports.testSocket = async (req, res, next) => {
+    console.log('entrei '+req.body.id)
+    var io = req.io
+    let response = await Room.findOne({ _id: req.body.id })
+    //console.log(response)
+    io.emit('FromAPI', response.createdBy)
+    //teste()
+    res.status(200).send({ data: response.roomName })
+}
+
 // Cria a sala para o planning poker
 exports.createRoom = async (req, res) => {
     if (isEmptyObject(req.body)) {
