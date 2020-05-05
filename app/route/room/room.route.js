@@ -9,6 +9,10 @@ router.put('/insertHistoryForScore/:roomId', roomController.insertHistoryForScor
 router.put('/insertHistoryPointValue/:roomId', roomController.insertHistoryPointValue);
 router.put('/updateHistoryPointValue/:roomId', roomController.updateHistoryPointValue);
 router.put('/endStoryPunctuation/:roomId', roomController.endStoryPunctuation);
+
+
+// rotas para teste
 router.post('/test', roomController.testSocket)
+router.get('/loginInRoom', roomController.testSocket)
 
 module.exports = router;

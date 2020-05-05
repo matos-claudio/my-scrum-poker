@@ -25,22 +25,48 @@ const io = socketIo.listen()
 //     io.emit('FromAPI', response) // broadcast para todos os clientes
 // };
 
-// const teste = async (socket) => {
-//     let response = await Room.findOne({ _id: '5eb033925f13767c7e254841' })
-//     console.log(response)
-//     //io.emit('FromAPI', response.roomName)
-//     io.emit('FromAPI', { to: response.roomName })
-// }
+const teste = async (socket) => {
+    let response = await Room.findOne({ _id: '5eb033925f13767c7e254841' })
+    console.log(response)
+    //io.emit('FromAPI', response.roomName)
+    io.emit('FromAPI', { to: response.roomName })
+}
+
+
+// ========================== METODOS PARA TESTE ==================================
 
 exports.testSocket = async (req, res, next) => {
-    console.log('entrei '+req.body.id)
+    console.log('entrei ' + req.body.id)
     var io = req.io
-    let response = await Room.findOne({ _id: req.body.id })
+    //let response = await Room.findOne({ _id: req.body.id })
     //console.log(response)
-    io.emit('FromAPI', response.createdBy)
+    //io.emit('FromAPI', response.createdBy)
     //teste()
-    res.status(200).send({ data: response.roomName })
+    listMembersInTheRoom(req)
+    //res.status(200).send({ data: response.roomName })
 }
+
+const listMembersInTheRoom = async (req) => {
+    var io = req.io
+    let membersInTheRoom = await Room.findOne({ _id: '5eb033925f13767c7e254841'})
+    //console.log(`Membros >>> ${JSON.stringify(membersInTheRoom.members)}`)
+    if(membersInTheRoom.members.length > 0){
+        console.log(`Membros >>> ${JSON.stringify(membersInTheRoom)}`)
+        io.emit('onlineMembers', membersInTheRoom)
+    }
+ 
+    //io.emit('onlineMembers', membersInTheRoom)
+    //return members.members
+}
+
+
+
+// ================================================================================
+
+
+
+
+
 
 // Cria a sala para o planning poker
 exports.createRoom = async (req, res) => {
@@ -72,6 +98,7 @@ exports.insertMemberIntoTheRoom = async (req, res) => {
             room.members.push(member)
             await Room.updateOne({ _id: roomId }, room);
             res.status(201).send({ data: room, message: 'Membro adicionado' })
+            listMembersInTheRoom(req)
         } else {
             res.status(404).send({ data: usuarios, message: 'Nenhuma sala encontrada.' })
         }
