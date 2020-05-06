@@ -12,7 +12,7 @@ router.put('/endStoryPunctuation/:roomId', roomController.endStoryPunctuation);
 
 
 // rotas para teste
-router.post('/test', roomController.testSocket)
+router.get('/test', roomController.testSocket)
 router.get('/loginInRoom', roomController.testSocket)
 
 module.exports = router;

@@ -68,6 +68,9 @@ var roomSchema = new Schema(
                             member: {
                                 type: String
                             },
+                            avatar: {
+                                type: String    
+                            },
                             score: {
                                 type: Number
                             }

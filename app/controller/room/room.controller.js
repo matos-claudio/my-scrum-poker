@@ -36,37 +36,63 @@ const teste = async (socket) => {
 // ========================== METODOS PARA TESTE ==================================
 
 exports.testSocket = async (req, res, next) => {
-    console.log('entrei ' + req.body.id)
-    var io = req.io
-    //let response = await Room.findOne({ _id: req.body.id })
-    //console.log(response)
-    //io.emit('FromAPI', response.createdBy)
-    //teste()
-    listMembersInTheRoom(req)
-    //res.status(200).send({ data: response.roomName })
+    //console.log('entrei ' + req.body.id)
+    let room = await Room.findOne({ _id: '5eb033925f13767c7e254841', itsActive: true })
+    //console.log(`sala ${JSON.stringify(room)}`)
+
+    let members = room.members.filter(member => member.isOnline)
+    let history = room.stories.filter(hist => hist.isCompleted == false && hist.historyNumber == '0001')
+
+    //console.log(`members ${JSON.stringify(members)}`)
+
+    if (history.length > 0) {
+        let votes = history[0].points.votes;
+        //console.log(`votes ${JSON.stringify(votes)}`)
+
+        if (votes.length == members.length) {
+            console.log(`votes entrei`)
+            votesList(req, votes)
+        }else{
+            listMembersInTheRoom(req)
+        }
+    }
 }
 
 const listMembersInTheRoom = async (req) => {
     var io = req.io
-    let membersInTheRoom = await Room.findOne({ _id: '5eb033925f13767c7e254841'})
-    //console.log(`Membros >>> ${JSON.stringify(membersInTheRoom.members)}`)
-    if(membersInTheRoom.members.length > 0){
-        console.log(`Membros >>> ${JSON.stringify(membersInTheRoom)}`)
+    let membersInTheRoom = await Room.findOne({ _id: '5eb033925f13767c7e254841' })
+    console.log(`membersInTheRoom ${JSON.stringify(membersInTheRoom)}`)
+    if (membersInTheRoom.members.length > 0) {
         io.emit('onlineMembers', membersInTheRoom)
     }
- 
-    //io.emit('onlineMembers', membersInTheRoom)
-    //return members.members
 }
 
+const votesList = async (req) => {
+    var io = req.io
+    let room = await Room.findOne({ _id: '5eb033925f13767c7e254841', itsActive: true })
+    let members = room.members.filter(member => member.isOnline)
+    let history = room.stories.filter(hist => hist.isCompleted == false && hist.historyNumber == '0001')
+
+    if (history.length > 0) {
+        let votes = history[0].points.votes;
+        //console.log(`votes ${JSON.stringify(votes)}`)
+
+        if (votes.length == members.length) {
+            console.log(`votes entrei`)
+            io.emit('votesFromMembers', votes)
+        }else{
+            listMembersInTheRoom(req)
+        }
+    }
+}
 
 
 // ================================================================================
 
 
-
-
-
+exports.loadRoom = (req, res, next) => {
+    listMembersInTheRoom(req)
+}
 
 // Cria a sala para o planning poker
 exports.createRoom = async (req, res) => {
@@ -140,13 +166,17 @@ exports.insertHistoryPointValue = async (req, res) => {
     try {
         var roomId = req.params.roomId
         var { member, score, historyNumber } = req.body
+        var userMember = await findMemberInRoom(roomId, member)
+        var avatar = userMember.avatar
+        console.log(`userMember ${JSON.stringify(userMember)}`)
         var room = await Room.findOne({ _id: roomId, itsActive: true })
         if (room) {
             var history = room.stories.find(storie => storie.historyNumber == historyNumber)
             if (history != undefined) {
-                var score = { member, score }
+                var score = { member, score, userMember, avatar }
                 room.stories.map(hist => hist.points.votes.push(score))
                 let pointUpdated = await Room.findOneAndUpdate({ _id: roomId }, room, { new: true })
+                votesList(req)
                 res.status(201).send({ data: pointUpdated, message: 'Ponto adicionado' })
             } else {
                 res.status(404).send({ data: null, message: 'Nenhuma história encontrada.' })
@@ -209,4 +239,9 @@ exports.endStoryPunctuation = async (req, res) => {
     } catch (error) {
         res.status(500).send({ data: error, message: 'Erro ao inserir membro na sala. Entre em contato com o desenvolvedor.' })
     }
+}
+
+const findMemberInRoom = async (roomId, member) => {
+    let result = await Room.findOne({ _id: roomId})
+    return result.members.find(m => m.email == member)
 }
