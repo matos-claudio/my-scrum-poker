@@ -18,11 +18,11 @@ var userSchema = new Schema({
         required: true,
         trim: true
     },
-    userOffice: {
-        type: String,
-        enum: ['PO', 'SM', 'TD'],
-        required: true
-    }
+    // userOffice: {
+    //     type: String,
+    //     enum: ['PO', 'SM', 'TD', 'GU'],
+    //     required: true
+    // }
 
 }, { versionKey: false, timestamps: true })
 module.exports = mongoose.model('User', userSchema);

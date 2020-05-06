@@ -9,13 +9,8 @@ const io = require("socket.io")(server)
 
 io.on("connection", (socket) => {
     console.log("New client connected");
-    // if (interval) {
-    //     clearInterval(interval);
-    // }
-   // interval = setInterval(() => getApiAndEmit(socket), 1000);
     socket.on("disconnect", () => {
         console.log("Client disconnected");
-        // clearInterval(interval);
     });
 });
 
@@ -27,13 +22,19 @@ const connection = require('./config/connection')
 console.log(connection.readyState)
 
 const roomRoute = require('./app/route/room/room.route');
-//app.use('/room', roomRoute);
+const userRoute = require('./app/route/user/user.route');
+const loginRoute = require('./app/route/login/login.route')
 
 app.use('/room', (req, res, next) => {
     req.io = io
     next()
 }, roomRoute)
 
-server.listen(port, () => console.log(`Listening on port ${port}`));
+app.use('/user', (req, res, next) => {
+    req.io = io
+    next()
+}, userRoute)
 
-//module.exports = app;
+app.use('login', loginRoute)
+
+server.listen(port, () => console.log(`Listening on port ${port}`));

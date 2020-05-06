@@ -75,10 +75,7 @@ const votesList = async (req) => {
 
     if (history.length > 0) {
         let votes = history[0].points.votes;
-        //console.log(`votes ${JSON.stringify(votes)}`)
-
         if (votes.length == members.length) {
-            console.log(`votes entrei`)
             io.emit('votesFromMembers', votes)
         }else{
             listMembersInTheRoom(req)
