@@ -35,6 +35,6 @@ app.use('/user', (req, res, next) => {
     next()
 }, userRoute)
 
-app.use('login', loginRoute)
+app.use('/login', loginRoute)
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
