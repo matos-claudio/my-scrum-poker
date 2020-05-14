@@ -52,24 +52,24 @@ exports.testSocket = async (req, res, next) => {
         if (votes.length == members.length) {
             console.log(`votes entrei`)
             votesList(req, votes)
-        }else{
-            listMembersInTheRoom(req)
+        } else {
+            listMembersInTheRoom(req, '5eb033925f13767c7e254841')
         }
     }
 }
 
-const listMembersInTheRoom = async (req) => {
+const listMembersInTheRoom = async (req, roomId) => {
     var io = req.io
-    let membersInTheRoom = await Room.findOne({ _id: '5eb033925f13767c7e254841' })
+    let membersInTheRoom = await Room.findOne({ _id: roomId })
     console.log(`membersInTheRoom ${JSON.stringify(membersInTheRoom)}`)
     if (membersInTheRoom.members.length > 0) {
         io.emit('onlineMembers', membersInTheRoom)
     }
 }
 
-const votesList = async (req) => {
+const votesList = async (req, roomId) => {
     var io = req.io
-    let room = await Room.findOne({ _id: '5eb033925f13767c7e254841', itsActive: true })
+    let room = await Room.findOne({ _id: roomId, itsActive: true })
     let members = room.members.filter(member => member.isOnline)
     let history = room.stories.filter(hist => hist.isCompleted == false && hist.historyNumber == '0001')
 
@@ -77,8 +77,8 @@ const votesList = async (req) => {
         let votes = history[0].points.votes;
         if (votes.length == members.length) {
             io.emit('votesFromMembers', votes)
-        }else{
-            listMembersInTheRoom(req)
+        } else {
+            listMembersInTheRoom(req, roomId)
         }
     }
 }
@@ -99,11 +99,44 @@ exports.createRoom = async (req, res) => {
 
     try {
         var room = new Room(req.body);
-        let createdRoom = await room.save();
-        res.status(201).send({ data: createdRoom, message: 'Sala criada.' })
+        let roomCreated = await queryRoomByName(room.roomName)
+        // verifico se ja possui uma sala criada
+        // se nao houver, faço a criacao e loga o usuario
+        if (roomCreated == null) {
+            let createdRoom = await room.save();
+            res.status(201).send({ data: createdRoom, message: 'Sala criada.' })
+        } else {
+            // caso ja possua sala criada, faço o login do usuario na mesma
+            var member = {
+                isOnline: true,
+                email: room.members[0].email,
+                name: room.members[0].name,
+                avatar: room.members[0].avatar,
+                office: room.members[0].office,
+            }
+
+            var result = await logInToTheRoom(req, roomCreated, member)
+            //console.log(`MEMBER ADD >>> ${JSON.stringify(member)}`)
+            res.status(201).send({ data: result, message: 'OK' })
+        }
     } catch (error) {
         res.status(500).send({ data: error, message: 'Erro ao criar a sala. Entre em contato com o desenvolvedor.' })
     }
+}
+
+const logInToTheRoom = async (req, room, member) => {
+    var memberInRoom = await findMemberInRoom(room._id, room.members[0].email)
+    console.log(`MEMBER ADD >>> ${JSON.stringify(memberInRoom)}`)
+
+    if (memberInRoom == null) {
+        room.members.push(member)
+        await Room.updateOne({ _id: room._id }, room);
+        listMembersInTheRoom(req, room._id)
+        return room
+    }
+
+    listMembersInTheRoom(req, room._id)
+    return room
 }
 
 // Insere membros do time na sala
@@ -121,7 +154,7 @@ exports.insertMemberIntoTheRoom = async (req, res) => {
             room.members.push(member)
             await Room.updateOne({ _id: roomId }, room);
             res.status(201).send({ data: room, message: 'Membro adicionado' })
-            listMembersInTheRoom(req)
+            listMembersInTheRoom(req, roomId)
         } else {
             res.status(404).send({ data: usuarios, message: 'Nenhuma sala encontrada.' })
         }
@@ -154,6 +187,21 @@ exports.insertHistoryForScore = async (req, res) => {
     }
 }
 
+exports.listStories = async (req, res) => {
+    try {
+        var roomId = req.params.roomId
+        var room = await Room.findOne({ _id: roomId })
+        if(room){
+            var stories = room
+            res.status(201).send({ data: stories, message: 'Histórias da sala' })
+        }else {
+            res.status(404).send({ data: null, message: 'Nenhuma sala encontrada.' })
+        }
+    } catch (error) {
+        res.status(500).send({ data: error, message: 'Erro ao buscar histórias. Entre em contato com o desenvolvedor.' })
+    }
+}
+
 // Insere ponto na historia
 exports.insertHistoryPointValue = async (req, res) => {
     if (isEmptyObject(req.body)) {
@@ -173,7 +221,7 @@ exports.insertHistoryPointValue = async (req, res) => {
                 var score = { member, score, userMember, avatar }
                 room.stories.map(hist => hist.points.votes.push(score))
                 let pointUpdated = await Room.findOneAndUpdate({ _id: roomId }, room, { new: true })
-                votesList(req)
+                votesList(req, roomId)
                 res.status(201).send({ data: pointUpdated, message: 'Ponto adicionado' })
             } else {
                 res.status(404).send({ data: null, message: 'Nenhuma história encontrada.' })
@@ -239,6 +287,11 @@ exports.endStoryPunctuation = async (req, res) => {
 }
 
 const findMemberInRoom = async (roomId, member) => {
-    let result = await Room.findOne({ _id: roomId})
+    let result = await Room.findOne({ _id: roomId })
     return result.members.find(m => m.email == member)
+}
+
+// consulta sala criada por nome 
+const queryRoomByName = async (roomName) => {
+    return await Room.findOne({ roomName, itsActive: true })
 }

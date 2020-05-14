@@ -9,7 +9,7 @@ router.put('/insertHistoryForScore/:roomId', roomController.insertHistoryForScor
 router.put('/insertHistoryPointValue/:roomId', roomController.insertHistoryPointValue);
 router.put('/updateHistoryPointValue/:roomId', roomController.updateHistoryPointValue);
 router.put('/endStoryPunctuation/:roomId', roomController.endStoryPunctuation);
-
+router.get('/listStories/:roomId', roomController.listStories)
 
 // rotas para teste
 router.get('/test', roomController.testSocket)

@@ -7,8 +7,8 @@ exports.auth = async (req, res) => {
     }
 
     try {
-        const { userEmail, userSenha } = req.body
-        const user = await User.findOne({ userEmail, userSenha })
+        const { userEmail, userPassword } = req.body
+        const user = await User.findOne({ userEmail, userPassword })
         if (user) {
             res.status(200).send({ data: user, message: 'OK' })
         } else {
