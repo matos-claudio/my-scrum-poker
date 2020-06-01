@@ -18,3 +18,4 @@ router.get('/test', roomController.testSocket)
 router.get('/loginInRoom', roomController.testSocket)
 
 module.exports = router;
+
