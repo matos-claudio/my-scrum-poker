@@ -1,6 +1,11 @@
 const User = require('../../model/user/user.model')
 const { isEmptyObject } = require('../../helper/helper');
 
+
+exports.test = async  (req, res) => {
+    res.status(200).send({message: 'OK'})
+}
+
 exports.saveUser = async (req, res) => {
     if (isEmptyObject(req.body)) {
         res.status(400).send({ data: null, message: 'Requisicão inválida. Verifique as informações e tente novamente.' })
