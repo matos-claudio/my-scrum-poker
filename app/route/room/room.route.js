@@ -10,6 +10,8 @@ router.put('/insertHistoryPointValue/:roomId', roomController.insertHistoryPoint
 router.put('/updateHistoryPointValue/:roomId', roomController.updateHistoryPointValue);
 router.put('/endStoryPunctuation/:roomId', roomController.endStoryPunctuation);
 router.get('/listStories/:roomId', roomController.listStories)
+router.put('/openVotes/:roomId', roomController.openVotes);
+router.put('/disconnectMember/:roomId', roomController.disconnectMember);
 
 // rotas para teste
 router.get('/test', roomController.testSocket)

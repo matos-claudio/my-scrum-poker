@@ -59,6 +59,10 @@ var roomSchema = new Schema(
                     type: Boolean,
                     default: false
                 },
+                isAvailable: {
+                    type: Boolean,
+                    default: false
+                },
                 points: {
                     historyPoints: {
                         type: Number
