@@ -12,7 +12,6 @@ exports.saveUser = async (req, res) => {
     }
 
     try {
-        console.log(`ENTREI`)
         var user = new User(req.body)
         var createdUser = await user.save()
         res.status(201).send({ data: createdUser, message: 'Usuário criado.' })
