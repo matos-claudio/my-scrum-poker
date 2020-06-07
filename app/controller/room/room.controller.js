@@ -1,15 +1,11 @@
 const Room = require('../../model/room/room.model');
 const { isEmptyObject } = require('../../helper/helper');
 
-//const socketIo = require("socket.io");
-
-
 const listMembersInTheRoom = async (req, roomId) => {
     var io = req.io
     let membersInTheRoom = await Room.findOne({ _id: roomId })
     console.log(`usuarioOnline >>> ${JSON.stringify(membersInTheRoom)}`)
     if (membersInTheRoom.members.length > 0) {
-        console.log(`qtdUsuariosOnline >>> ${membersInTheRoom.members.length}`)
         io.emit('onlineMembers', membersInTheRoom)
     }
 }
@@ -44,16 +40,18 @@ exports.createRoom = async (req, res) => {
 
     try {
         var room = new Room(req.body);
-        let roomCreated = await queryRoomByName(room.roomName)
+        let roomCreated = await findRoom(room.roomName)
         if (roomCreated == null) {
             let createdRoom = await room.save();
             listMembersInTheRoom(req, createdRoom._id)
             insertStorie(createdRoom._id)
             res.status(201).send({ data: createdRoom, message: 'Sala criada.' })
-        } else {
+        } else if(room.roomPassword === roomCreated.roomPassword){
             var member = { isOnline: true, email: room.members[0].email, name: room.members[0].name, avatar: room.members[0].avatar, office: room.members[0].office }
             var result = await logInToTheRoom(req, roomCreated, member)
             res.status(201).send({ data: result, message: 'OK' })
+        } else {
+            res.status(404).send({ data: null, message: 'Nenhuma sala encontrada.' })
         }
     } catch (error) {
         res.status(500).send({ data: error, message: 'Erro ao criar a sala. Entre em contato com o desenvolvedor.' })
@@ -62,12 +60,9 @@ exports.createRoom = async (req, res) => {
 
 const logInToTheRoom = async (req, room, member) => {
     var memberInRoom = await findMemberInRoom(room._id, member.email)
-    console.log(`MEMBER ADD >>> ${JSON.stringify(memberInRoom)}`)
-
     if (memberInRoom == undefined) {
         room.members.push(member)
         await Room.updateOne({ _id: room._id }, room);
-        console.log(`SALA >>> ${JSON.stringify(room._id)}`)
         listMembersInTheRoom(req, room._id)
         return room
     }
@@ -169,9 +164,7 @@ exports.insertHistoryPointValue = async (req, res) => {
         var { member, score, historyNumber } = req.body
         var userMember = await findMemberInRoom(roomId, member)
         var avatar = userMember.avatar
-        console.log(`userMember ${JSON.stringify(userMember)}`)
         var room = await Room.findOne({ _id: roomId, itsActive: true })
-        console.log(`statusRoom ${JSON.stringify(userMember)}`)
         if (room) {
             var history = room.stories.find(storie => 
                 storie.historyNumber == '00001' && 
@@ -208,7 +201,6 @@ const insertStorie = async (roomId) => {
 exports.openVotes = async (req, res) => {
     try {
         var roomId = req.params.roomId
-        console.log(`roomId ${JSON.stringify(roomId)}`)
         var room = await Room.findOne({ _id: roomId, itsActive: true })
         if (room) {
             var history = room.stories.find(storie => storie.historyNumber == '00001' && storie.isCompleted == false)
@@ -285,6 +277,6 @@ const findMemberInRoom = async (roomId, member) => {
 }
 
 // consulta sala criada por nome 
-const queryRoomByName = async (roomName) => {
+const findRoom = async (roomName) => {
     return await Room.findOne({ roomName, itsActive: true })
 }
