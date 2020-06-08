@@ -76,7 +76,7 @@ var roomSchema = new Schema(
                                 type: String    
                             },
                             score: {
-                                type: Number
+                                type: String
                             }
                         }
                         
